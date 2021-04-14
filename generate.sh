@@ -80,6 +80,8 @@ cat > Inspection_report.md << EOF
 
 ---
 
+[TOC]
+
 # Kubernetes生产集群巡检报告
 
 ## 1、主机列表
