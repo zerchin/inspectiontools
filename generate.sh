@@ -38,6 +38,20 @@ NODE_CPU_REQUEST=()
 NODE_CPU_LIMIT=()
 NODE_MEM_REQUEST=()
 NODE_MEM_LIMIT=()
+NODE_CPU_REQUEST_PER=()
+NODE_CPU_LIMIT_PER=()
+NODE_MEM_REQUEST_PER=()
+NODE_MEM__LIMIT_PER=()
+
+# 计数
+SWAP_COUNT=0
+CPU_COUNT=0
+MEM_COUNT=0
+DISK_COUNT=0
+CPU_REQUEST_COUNT=0
+CPU_LIMIT_COUNT=0
+MEM_REQUEST_COUNT=0
+MEM_LIMIT_COUNT=0
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
     ## 主机列表
@@ -70,6 +84,12 @@ do
     NODE_CPU_LIMIT[${#NODE_CPU_LIMIT[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep cpu | awk '{print $4 " " $5}'`
     NODE_MEM_REQUEST[${#NODE_MEM_REQUEST[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep memory | awk '{print $2 " " $3}'`
     NODE_MEM_LIMIT[${#NODE_MEM_LIMIT[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep memory | awk '{print $4 " " $5}'`
+
+    NODE_CPU_REQUEST_PER[${#NODE_CPU_REQUEST_PER[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep cpu | awk '{print $3}'`
+    NODE_CPU_LIMIT_PER[${#NODE_CPU_LIMIT_PER[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep cpu | awk '{print $5}'`
+    NODE_MEM_REQUEST_PER[${#NODE_MEM_REQUEST_PER[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep memory | awk '{print $3}'`
+    NODE_MEM__LIMIT_PER[${#NODE_MEM__LIMIT_PER[*]}]=`grep -A 6 "Allocated resources" ${NODE_NAME[$i]}.yaml| grep memory | awk '{print $5}'`
+
 
 
 done
@@ -128,7 +148,7 @@ EOF
     echo "| Kube-proxy版本 | ${NODE_KUBEPROXY_VERSION[$i]} | - |" >> Inspection_report.md
     echo "| Docker版本 | ${NODE_DOCKER_VERSION[$i]} | - |" >> Inspection_report.md
 
-## 这部分未完成
+
     cat >> Inspection_report.md << EOF
 **核心组件运行情况**
 
@@ -189,15 +209,198 @@ EOF
 **节点建议/问题**
 
 EOF
+    tmp_num=1
+    if [[ ${NODE_SWAP_PRECENT[$i]} -gt 0 ]]
+    then
+        echo "${tmp_num}. 节点swap分区未关闭，建议关闭此项" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        SWAP_COUNT=$(($SWAP_COUNT+1))
+
+    fi
+    if [[ ${NODE_CPU_PERCENT[$i]} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点CPU使用达到${NODE_CPU_PERCENT[$i]} %，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        CPU_COUNT=$(($CPU_COUNT+1))
+    fi
+    if [[ ${NODE_MEM_PERCENT[$i]} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点内存使用达到${NODE_MEM_PERCENT[$i]} %，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        MEM_COUNT=$(($MEM_COUNT+1))
+    fi
+    if [[ ${NODE_DISK_PERCENT[$i]} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点磁盘使用达到${NODE_DISK_PERCENT[$i]} %，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        DISK_COUNT=$(($DISK_COUNT+1))
+    fi
+
+    if [[ ${NODE_CPU_REQUEST_PER[$i]:1:-2} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点CPU资源预留（request）达到${NODE_CPU_REQUEST_PER[$i]:1:-1} ，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        CPU_REQUEST_COUNT=$(($CPU_REQUEST_COUNT+1))
+    fi
+    if [[ ${NODE_MEM_REQUEST_PER[$i]:1:-2} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点内存资源预留（request）达到${NODE_MEM_REQUEST_PER[$i]:1:-1} ，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        MEM_REQUEST_COUNT=$(($MEM_REQUEST_COUNT+1))
+    fi
+    if [[ ${NODE_CPU_LIMIT_PER[$i]:1:-2} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点CPU资源限制（limit）达到${NODE_CPU_LIMIT_PER[$i]:1:-1} ，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        CPU_LIMIT_COUNT=$(($CPU_LIMIT_COUNT+1))
+    fi
+    if [[ ${NODE_MEM__LIMIT_PER[$i]:1:-2} -ge 80 ]]
+    then
+        echo "${tmp_num}. 截止至巡检日期，节点内存资源限制（limit）达到${NODE_MEM__LIMIT_PER[$i]:1:-1} ，建议合理规划资源" >> Inspection_report.md
+        echo "" >> Inspection_report.md
+        tmp_num=$(($tmp_num+1))
+        MEM_LIMIT_COUNT=$(($MEM_LIMIT_COUNT+1))
+    fi
+
+
+
 
 done
 
-echo >> Inspection_report.md << EOF
+cat >> Inspection_report.md << EOF
 ## 3、巡检汇总
+
+问题总结如下:
+
+1. 集群节点整体负载水平较高;低风险，暂无需扩容节点;
 
 EOF
 
+total_num=1
 
+if [[ $SWAP_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. " >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_SWAP_PRECENT[$i]} -gt 0  ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点均未关闭swap分区，建议关闭此项；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
 
+if [[ $CPU_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_CPU_PERCENT[$i]} -ge 80  ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点CPU使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
 
+if [[ $MEM_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_MEM_PERCENT[$i]} -ge 80  ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点内存使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
 
+if [[ $DISK_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_DISK_PERCENT[$i]} -ge 80  ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点磁盘使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
+
+if [[ $CPU_REQUEST_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_CPU_REQUEST_PER[$i]:1:-2} -ge 80 ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点CPU资源预留（request）使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
+
+if [[ $MEM_REQUEST_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_MEM_REQUEST_PER[$i]:1:-2} -ge 80 ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点内存资源预留（request）使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
+
+if [[ $CPU_LIMIT_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_CPU_LIMIT_PER[$i]:1:-2} -ge 80 ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点CPU资源限制（limit）使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
+
+if [[ $MEM_LIMIT_COUNT -gt 0 ]]
+then
+    total_num=$(($total_num+1))
+    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
+    do
+        if [[ ${NODE_MEM__LIMIT_PER[$i]:1:-2} -ge 80 ]]
+        then
+            echo -n "${NODE_NAME[$i]} " >> Inspection_report.md
+        fi    
+    done
+    echo "节点内存资源限制（limit）使用超过80%，建议合理规划资源；" >> Inspection_report.md
+    echo "" >> Inspection_report.md
+fi
