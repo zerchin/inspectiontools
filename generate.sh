@@ -7,7 +7,7 @@ for i in *
 do
   if [[ -d $i ]]
   then
-  	NODE_NAME[${#NODE_NAME[*]}]=$i 
+      NODE_NAME[${#NODE_NAME[*]}]=$i 
   fi
 done
 
@@ -40,25 +40,25 @@ NODE_MEM_REQUEST=()
 NODE_MEM_LIMIT=()
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
-	## 主机列表
-	NODE_IP[${#NODE_IP[*]}]=`egrep InternalIP ${NODE_NAME[$i]}.yaml |awk '{print $2}'`
-	NODE_ROLE[${#NODE_ROLE[*]}]=`egrep Roles ${NODE_NAME[$i]}.yaml | awk '{print $2}'`
+    ## 主机列表
+    NODE_IP[${#NODE_IP[*]}]=`egrep InternalIP ${NODE_NAME[$i]}.yaml |awk '{print $2}'`
+    NODE_ROLE[${#NODE_ROLE[*]}]=`egrep Roles ${NODE_NAME[$i]}.yaml | awk '{print $2}'`
 
-	## 主机资源使用
-	NODE_CPU_PERCENT[${#NODE_CPU_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.CPU | awk -F '.' '{print $1}'`
-	NODE_MEM_PERCENT[${#NODE_MEM_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Mem | awk -F '.' '{print $1}'`
-	NODE_DISK_PERCENT[${#NODE_DISK_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
-	NODE_SWAP_PRECENT[${#NODE_SWAP_PRECENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
+    ## 主机资源使用
+    NODE_CPU_PERCENT[${#NODE_CPU_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.CPU | awk -F '.' '{print $1}'`
+    NODE_MEM_PERCENT[${#NODE_MEM_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Mem | awk -F '.' '{print $1}'`
+    NODE_DISK_PERCENT[${#NODE_DISK_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
+    NODE_SWAP_PRECENT[${#NODE_SWAP_PRECENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
 
-	## 系统版本信息
-	NODE_OS[${#NODE_OS[*]}]=`egrep "OS Image" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
-	NODE_KERNEL[${#NODE_KERNEL[*]}]=`egrep "Kernel Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
-	NODE_KUBELET_VERSION[${#NODE_KUBELET_VERSION[*]}]=`egrep "Kubelet Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
-	NODE_KUBEPROXY_VERSION[${#NODE_KUBEPROXY_VERSION[*]}]=`egrep "Kube-Proxy Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
-	NODE_DOCKER_VERSION[${#NODE_DOCKER_VERSION[*]}]=`egrep "docker://" ${NODE_NAME[$i]}.yaml | awk -F 'docker://' '{print $2}'`
+    ## 系统版本信息
+    NODE_OS[${#NODE_OS[*]}]=`egrep "OS Image" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
+    NODE_KERNEL[${#NODE_KERNEL[*]}]=`egrep "Kernel Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
+    NODE_KUBELET_VERSION[${#NODE_KUBELET_VERSION[*]}]=`egrep "Kubelet Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
+    NODE_KUBEPROXY_VERSION[${#NODE_KUBEPROXY_VERSION[*]}]=`egrep "Kube-Proxy Version" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
+    NODE_DOCKER_VERSION[${#NODE_DOCKER_VERSION[*]}]=`egrep "docker://" ${NODE_NAME[$i]}.yaml | awk -F 'docker://' '{print $2}'`
 
     ## 核心组件运行情况
-	## 修改Docker_Info.json格式
+    ## 修改Docker_Info.json格式
     sed -i -e "s#\[##g"  -e "s#\]##g" -e "s/^{/[{/" -e "s/}$/}]/" -e "s/}{/},{/g" -e "s#/##g"  ${NODE_NAME[$i]}/Dokcer_Info.json
 
     ## Pod运行情况
@@ -92,7 +92,7 @@ EOF
 
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
-	echo "| ${NODE_NAME[$i]} | ${NODE_IP[$i]} |  ${NODE_ROLE[$i]} |" >> Inspection_report.md
+    echo "| ${NODE_NAME[$i]} | ${NODE_IP[$i]} |  ${NODE_ROLE[$i]} |" >> Inspection_report.md
 done
 
 cat >> Inspection_report.md << EOF
@@ -167,10 +167,10 @@ EOF
     do
         NS[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $1}'`
         POD_NAME[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $2}'`
-        CPU_REQUEST[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $3}'`
-        CPU_LIMIT[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $4}'`
-        MEM_REQUEST[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $5}'`
-        MEM_LIMIT[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $6}'`
+        CPU_REQUEST[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $3 " " $4}'`
+        CPU_LIMIT[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $5 " " $6}'`
+        MEM_REQUEST[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $7 " " $8}'`
+        MEM_LIMIT[$p]=`cat ${NODE_NAME[$i]}/pod.data |awk -v p=$(($p+1)) 'NR==p{print $9 " " $10}'`
         echo "| ${NS[$p]} | ${POD_NAME[$p]} | ${CPU_REQUEST[$p]} | ${CPU_LIMIT[$p]} | ${MEM_REQUEST[$p]} | ${MEM_LIMIT[$p]} |" >> Inspection_report.md
     done
 
