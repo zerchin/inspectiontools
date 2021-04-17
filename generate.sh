@@ -52,6 +52,28 @@ CPU_REQUEST_COUNT=0
 CPU_LIMIT_COUNT=0
 MEM_REQUEST_COUNT=0
 MEM_LIMIT_COUNT=0
+
+get_pie_chart(){
+    if [[ $1 -lt 50 ]]
+    then
+        LARGE_ARC_FLAG=0
+    else
+        LARGE_ARC_FLAG=1
+    fi
+        r=50
+        c_x=${2}
+        c_y=95
+        angle=`echo "scale=10; $1 * 360 / 100"| bc -l`
+        x=`echo "scale=10; ${r} * s(${angle} * 3.14 / 180 )"| bc -l`
+        y=`echo "scale=10;${r} - ( ${r} * c(${angle} * 3.14 / 180 ) )"| bc -l`
+        text_x=$(($c_x-30))
+        echo "<text x='${c_x}' y='$((c_y-60))' font-size="20" text-anchor='middle'>${3}使用率</text>" >> Inspection_report.md
+        echo "<circle cx='${c_x}' cy='${c_y}' r='${r}'  fill='#FFA500'/>" >> Inspection_report.md
+        echo "<path d = 'M ${c_x},${c_y} v-${r} a${r},${r} 0 ${LARGE_ARC_FLAG},1 ${x},${y} ' fill='#1C86EE'/>" >> Inspection_report.md
+        echo "<circle cx='${c_x}' cy='${c_y}' r='$(($r-15))'  fill='white'/>" >> Inspection_report.md
+        echo "<text x='${c_x}' y='$((c_y+8))' font-size="22" text-anchor='middle' font-weight='bold'>$1%</text>" >> Inspection_report.md
+}
+
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
     ## 主机列表
@@ -128,13 +150,14 @@ do
 
 **主机资源使用**
 
-|              | 使用百分比 | 剩余百分比 |
-| ------------ | ---------- | ---------- |
+<svg width='850' height='180'>
 EOF
-    echo "| CPU使用情况 | ${NODE_CPU_PERCENT[$i]}% | $((100-${NODE_CPU_PERCENT[$i]}))% |" >> Inspection_report.md
-    echo "| 内存使用情况 | ${NODE_MEM_PERCENT[$i]}% | $((100-${NODE_MEM_PERCENT[$i]}))% |" >> Inspection_report.md
-    echo "| SWAP使用情况 | ${NODE_SWAP_PRECENT[$i]}% | $((100-${NODE_SWAP_PRECENT[$i]}))% |" >> Inspection_report.md
-    echo "| 磁盘使用情况 | ${NODE_DISK_PERCENT[$i]}% | $((100-${NODE_DISK_PERCENT[$i]}))% |" >> Inspection_report.md
+    get_pie_chart ${NODE_CPU_PERCENT[$i]} 100 CPU
+    get_pie_chart ${NODE_MEM_PERCENT[$i]} 300 内存
+    get_pie_chart ${NODE_SWAP_PRECENT[$i]} 500 SWAP
+    get_pie_chart ${NODE_DISK_PERCENT[$i]} 700 磁盘
+    echo "</svg>" >> Inspection_report.md
+    echo "" >> Inspection_report.md
 
     cat >> Inspection_report.md << EOF
 **系统版本信息**
