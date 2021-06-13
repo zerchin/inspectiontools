@@ -8,17 +8,14 @@
 ├── 10.129.142.80
 │   ├── Dokcer_Info.json
 │   ├── Node_Info.json
-│   └── pod.data
 ├── 10.129.142.80.yaml
 ├── 10.129.142.81
 │   ├── Dokcer_Info.json
 │   ├── Node_Info.json
-│   └── pod.data
 ├── 10.129.142.81.yaml
 ├── 10.129.142.82
 │   ├── Dokcer_Info.json
 │   ├── Node_Info.json
-│   └── pod.data
 ├── 10.129.142.82.yaml
 ```
 例如：
