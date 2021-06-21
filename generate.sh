@@ -84,7 +84,7 @@ do
     NODE_CPU_PERCENT[${#NODE_CPU_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.CPU | awk -F '.' '{print $1}'`
     NODE_MEM_PERCENT[${#NODE_MEM_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Mem | awk -F '.' '{print $1}'`
     NODE_DISK_PERCENT[${#NODE_DISK_PERCENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
-    NODE_SWAP_PRECENT[${#NODE_SWAP_PRECENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Disk | awk -F '.' '{print $1}'`
+    NODE_SWAP_PRECENT[${#NODE_SWAP_PRECENT[*]}]=`cat ${NODE_NAME[$i]}/Node_Info.json | jq .Percent.Swap | awk -F '.' '{print $1}'`
 
     ## 系统版本信息
     NODE_OS[${#NODE_OS[*]}]=`egrep "OS Image" ${NODE_NAME[$i]}.yaml | awk -F ':' '{print $2}'`
