@@ -302,11 +302,13 @@ cat >> Inspection_report.md << EOF
 
 问题总结如下:
 
-1. 集群节点整体负载水平较高;低风险，暂无需扩容节点;
+1. （截止至巡检时间，集群节点整体负载水平非常良好，未见异常，暂无需扩容节点，可长期稳健运行;）
+
+2. （k8s组件整体运行状态正常；）
 
 EOF
 
-total_num=1
+total_num=2
 
 if [[ $SWAP_COUNT -gt 0 ]]
 then
@@ -326,7 +328,7 @@ fi
 if [[ $CPU_COUNT -gt 0 ]]
 then
     total_num=$(($total_num+1))
-    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    echo -n "${total_num}. 截止至巡检时间，" >> Inspection_report.md
     for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
     do
         if [[ ${NODE_CPU_PERCENT[$i]} -ge 80  ]]
@@ -341,7 +343,7 @@ fi
 if [[ $MEM_COUNT -gt 0 ]]
 then
     total_num=$(($total_num+1))
-    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    echo -n "${total_num}. 截止至巡检时间，" >> Inspection_report.md
     for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
     do
         if [[ ${NODE_MEM_PERCENT[$i]} -ge 80  ]]
@@ -371,7 +373,7 @@ fi
 if [[ $CPU_REQUEST_COUNT -gt 0 ]]
 then
     total_num=$(($total_num+1))
-    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    echo -n "${total_num}. 截止至巡检时间，" >> Inspection_report.md
     for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
     do
         if [[ ${NODE_CPU_REQUEST_PER[$i]:1:-2} -ge 80 ]]
@@ -386,7 +388,7 @@ fi
 if [[ $MEM_REQUEST_COUNT -gt 0 ]]
 then
     total_num=$(($total_num+1))
-    echo -n "${total_num}. 截止至巡检日期，" >> Inspection_report.md
+    echo -n "${total_num}. 截止至巡检时间，" >> Inspection_report.md
     for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
     do
         if [[ ${NODE_MEM_REQUEST_PER[$i]:1:-2} -ge 80 ]]
@@ -427,3 +429,7 @@ then
     echo "节点内存资源限制（limit）使用超过80%，建议合理规划资源；" >> Inspection_report.md
     echo "" >> Inspection_report.md
 fi
+total_num=$(($total_num+1))
+echo -n "${total_num}. （未见其他异常。）" >> Inspection_report.md
+echo "" >> Inspection_report.md
+
