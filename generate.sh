@@ -11,6 +11,8 @@ do
   fi
 done
 
+## 获取主机名
+NODE_HOST_NAME=()
 ## 获取主机IP
 NODE_IP=()
 ## 获取主机角色
@@ -77,6 +79,7 @@ get_pie_chart(){
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
     ## 主机列表
+    NODE_HOST_NAME[${#NODE_HOST_NAME[*]}]=`egrep "Name:" ${NODE_NAME[$i]}.yaml |awk '{print $2}'`
     NODE_IP[${#NODE_IP[*]}]=`egrep InternalIP ${NODE_NAME[$i]}.yaml |awk '{print $2}'`
     NODE_ROLE[${#NODE_ROLE[*]}]=`egrep Roles ${NODE_NAME[$i]}.yaml | awk '{print $2}'`
 
@@ -134,7 +137,7 @@ EOF
 
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
-    echo "| ${NODE_NAME[$i]} | ${NODE_IP[$i]} |  ${NODE_ROLE[$i]} |" >> Inspection_report.md
+    echo "| ${NODE_HOST_NAME[$i]} | ${NODE_IP[$i]} |  ${NODE_ROLE[$i]} |" >> Inspection_report.md
 done
 
 cat >> Inspection_report.md << EOF
@@ -146,7 +149,7 @@ EOF
 for i in `seq 0 $((${#NODE_NAME[*]} - 1))`
 do
     cat >> Inspection_report.md << EOF
-### 节点：${NODE_NAME[$i]}
+### 节点：${NODE_HOST_NAME[$i]}
 
 **主机资源使用**
 
@@ -191,12 +194,13 @@ EOF
     KUBEPROXY_STATUS=`cat ${NODE_NAME[$i]}/Dokcer_Info.json | jq '[foreach .[] as $item([[],[]]; if $item.DockerName == "kube-proxy" then $item.DockerStatus else empty end )  ]' | awk -F '"' 'NR==2{print $2}'`
     KUBEPROXY_STATE=`cat ${NODE_NAME[$i]}/Dokcer_Info.json | jq '[foreach .[] as $item([[],[]]; if $item.DockerName == "kube-proxy" then $item.DockerState else empty end )  ]' | awk -F '"' 'NR==2{print $2}'`
 
-    echo "| etcd | ${ETCD_STATUS} | ${ETCD_STATE} |      |" >> Inspection_report.md
-    echo "| kube-apiserver | ${API_STATUS} | ${API_STATE} |      |" >> Inspection_report.md
-    echo "| kube-controller-manager | ${CM_STATUS} | ${CM_STATE} |      |" >> Inspection_report.md
-    echo "| kube-scheduler | ${SCHEDULER_STATUS} | ${SCHEDULER_STATE} |      |" >> Inspection_report.md
-    echo "| kubelet | ${KUBELET_STATUS} | ${KUBELET_STATE} |      |" >> Inspection_report.md
-    echo "| kube-proxy | ${KUBEPROXY_STATUS} | ${KUBEPROXY_STATE} |      |" >> Inspection_report.md
+    
+    if [[ ${ETCD_STATUS} ]];then echo "| etcd | ${ETCD_STATUS} | ${ETCD_STATE} | - |" >> Inspection_report.md ; fi
+    if [[ ${API_STATUS} ]];then echo "| kube-apiserver | ${API_STATUS} | ${API_STATE} | - |" >> Inspection_report.md ; fi
+    if [[ ${CM_STATUS} ]];then echo "| kube-controller-manager | ${CM_STATUS} | ${CM_STATE} | - |" >> Inspection_report.md ; fi
+    if [[ ${SCHEDULER_STATUS} ]];then echo "| kube-scheduler | ${SCHEDULER_STATUS} | ${SCHEDULER_STATE} | - |" >> Inspection_report.md ; fi
+    echo "| kubelet | ${KUBELET_STATUS} | ${KUBELET_STATE} | - |" >> Inspection_report.md
+    echo "| kube-proxy | ${KUBEPROXY_STATUS} | ${KUBEPROXY_STATE} | - |" >> Inspection_report.md
 
     cat >> Inspection_report.md << EOF
 
@@ -432,4 +436,3 @@ fi
 total_num=$(($total_num+1))
 echo -n "${total_num}. （未见其他异常。）" >> Inspection_report.md
 echo "" >> Inspection_report.md
-
