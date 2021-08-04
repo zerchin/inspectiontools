@@ -123,7 +123,6 @@ done
 cat > Inspection_report.md << EOF
 *Copyright 2021, [Rancher Labs (CN)](https://www.rancher.cn/). All Rights Reserved.*
 
----
 
 [TOC]
 
