@@ -121,7 +121,7 @@ EOF
 k8s_rke_config_output(){
     cluster_id=$1
     echo "#### rke cluster.yml配置" >>  ${report_output_path}
-    driver=$(cat output/cluster/cluster_c-gjww2.json | jq -r .driver)
+    driver=$(cat output/cluster/cluster_${cluster_id}.json | jq -r .driver)
     ## 判断是否为空
     if [[ $driver != "rancherKubernetesEngine" ]];then
         echo "**非自定义集群，无cluster.yml相关配置。**" >> ${report_output_path}
