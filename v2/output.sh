@@ -466,7 +466,7 @@ if [[ $1 == "" ]];then
         ## node
         node_output
         for n in `ls ${cluster_output_path}/${cluster}/ | grep -v "^cluster_info"`;do
-            node=$(echo $n | awk -F '.' '{print $1}')
+            node=$(echo $n | awk -F '.txt' '{print $1}')
             node_info ${cluster} ${node}
             node_resource_limit ${cluster} ${node}
             node_pod ${cluster} ${node}
